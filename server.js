@@ -369,12 +369,10 @@ io.on('connection', (socket) => {
       }
       room.guessesLeft--;
       if (room.guessesLeft <= 0) {
-        room.currentSpyIndex = 1 - room.currentSpyIndex;
         room.currentHint = null; room.guessesLeft = 0;
       }
     } else {
-      // Passant → fin du tour
-      room.currentSpyIndex = 1 - room.currentSpyIndex;
+      // Passant → fin du tour (sans changer les rôles)
       room.currentHint = null; room.guessesLeft = 0;
     }
 
@@ -387,7 +385,6 @@ io.on('connection', (socket) => {
     if (!room || room.mode !== 'duo' || room.state !== 'playing' || !room.currentHint) return;
     const pi = room.players.findIndex(p => p.id === socket.id);
     if (pi === room.currentSpyIndex) return;
-    room.currentSpyIndex = 1 - room.currentSpyIndex;
     room.currentHint = null; room.guessesLeft = 0;
     broadcastDuo(room);
   });
@@ -399,7 +396,8 @@ io.on('connection', (socket) => {
     room.grid = generateDuoGrid();
     room.state = 'playing';
     room.timeTokens = 9; room.contactsLeft = 15;
-    room.currentSpyIndex = 0; room.currentHint = null; room.guessesLeft = 0;
+    room.currentSpyIndex = 1 - room.currentSpyIndex; // swap rôles entre parties
+    room.currentHint = null; room.guessesLeft = 0;
     room.winner = null; room.winCause = null;
     for (const p of room.players) {
       const s = io.sockets.sockets.get(p.id);

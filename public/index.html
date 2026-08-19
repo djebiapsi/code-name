@@ -167,7 +167,7 @@
       <div id="duo-lobby-players" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
     <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-sm);padding:14px;font-size:0.82rem;color:var(--text-muted);line-height:1.5">
-      ℹ️ Chacun verra sa propre carte-clé. Le Joueur 1 commence comme espion, le Joueur 2 comme agent — les rôles alternent à chaque tour.
+      ℹ️ Le Joueur 1 est espion toute la manche (donne les indices), le Joueur 2 est agent (devine). À la revanche, les rôles s'inversent.
     </div>
     <button class="btn btn-duo btn-lg btn-full" id="btn-start-duo" disabled>Démarrer la mission</button>
     <div id="duo-lobby-guest-msg" style="text-align:center;color:var(--text-muted);font-size:0.88rem;display:none">En attente que l'hôte démarre…</div>
@@ -312,7 +312,7 @@
     <div class="card" style="display:flex;flex-direction:column;gap:14px">
       <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">1</div><div><b>Coopératif</b><div style="font-size:0.83rem;color:var(--text-muted)">Vous jouez ensemble contre le jeu. 15 contacts à trouver, 9 tours max.</div></div></div>
       <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">2</div><div><b>Cartes-clés asymétriques</b><div style="font-size:0.83rem;color:var(--text-muted)">Chacun voit 9 contacts sur sa carte-clé. 3 sont communs, 6 sont propres à chacun.</div></div></div>
-      <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">3</div><div><b>Rôles alternés</b><div style="font-size:0.83rem;color:var(--text-muted)">À chaque tour l'un est espion (donne l'indice), l'autre est agent (devine). Les rôles tournent.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">3</div><div><b>Rôles fixes par manche</b><div style="font-size:0.83rem;color:var(--text-muted)">L'espion donne tous les indices de la manche, l'agent devine. À la revanche, les rôles s'inversent.</div></div></div>
       <div style="display:flex;gap:12px"><div class="rules-num" style="background:var(--danger)">!</div><div><b>Assassins & temps</b><div style="font-size:0.83rem;color:var(--text-muted)">Toucher un assassin (💀) = défaite immédiate. Dépasser 9 tours = défaite.</div></div></div>
     </div>
   </div>
