@@ -22,18 +22,19 @@
     <div class="logo-sub">Le jeu d'espions</div>
   </div>
   <div class="home-actions">
-    <button class="btn btn-primary btn-lg" id="btn-create">Créer une partie</button>
-    <button class="btn btn-blue btn-lg" id="btn-join-nav">Rejoindre</button>
-    <div class="divider"><hr><span>Règles</span><hr></div>
-    <button class="btn btn-ghost" id="btn-rules-nav">📖 Comment jouer</button>
+    <button class="btn btn-primary btn-lg" id="btn-create">Créer — Mode Classique</button>
+    <button class="btn btn-duo btn-lg" id="btn-create-duo">Créer — Duo coopératif</button>
+    <div class="divider"><hr><span>ou</span><hr></div>
+    <button class="btn btn-ghost btn-lg" id="btn-join-nav">Rejoindre une partie</button>
+    <button class="btn btn-ghost btn-sm" id="btn-rules-nav" style="opacity:0.7">📖 Règles</button>
   </div>
 </div>
 
-<!-- ══ CREATE ════════════════════════════════════════════════════════════════ -->
+<!-- ══ CREATE (classique) ════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-create">
   <div class="header">
     <button class="btn-back" data-back="screen-home">←</button>
-    <span style="font-weight:800">Créer une partie</span>
+    <span style="font-weight:800">Mode Classique</span>
     <div style="width:42px"></div>
   </div>
   <div class="setup-content">
@@ -44,6 +45,30 @@
       </div>
     </div>
     <button class="btn btn-primary btn-lg btn-full" id="btn-create-room">Créer la partie</button>
+  </div>
+</div>
+
+<!-- ══ CREATE DUO ════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-create-duo">
+  <div class="header">
+    <button class="btn-back" data-back="screen-home">←</button>
+    <span style="font-weight:800">Duo — Coopératif</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="setup-content">
+    <div class="card" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25)">
+      <div style="font-weight:800;margin-bottom:6px;color:#10B981">Mode Duo</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.5">
+        2 joueurs coopératifs. Chacun voit des contacts différents sur la grille. Trouvez les 15 contacts ensemble en 9 tours max !
+      </div>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Ton prénom</label>
+        <input class="form-input" id="duo-create-name" type="text" placeholder="Ex : Marie" maxlength="16" autocomplete="off">
+      </div>
+    </div>
+    <button class="btn btn-duo btn-lg btn-full" id="btn-create-duo-room">Créer la partie</button>
   </div>
 </div>
 
@@ -68,11 +93,11 @@
                maxlength="6" style="letter-spacing:6px;font-size:1.4rem;text-align:center;text-transform:uppercase" autocomplete="off">
       </div>
     </div>
-    <button class="btn btn-blue btn-lg btn-full" id="btn-join-room">Rejoindre</button>
+    <button class="btn btn-ghost btn-lg btn-full" id="btn-join-room">Rejoindre</button>
   </div>
 </div>
 
-<!-- ══ LOBBY ══════════════════════════════════════════════════════════════════ -->
+<!-- ══ LOBBY CLASSIQUE ════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-lobby">
   <div class="header">
     <button class="btn-back" id="btn-leave-lobby">←</button>
@@ -85,27 +110,23 @@
       <div class="room-code-value" id="lobby-code">------</div>
       <div class="room-code-hint">Donne ce code à tes coéquipiers</div>
     </div>
-
     <div class="card">
       <div class="form-group">
         <label class="form-label">Choisir ton équipe & rôle</label>
         <div class="teams-grid" id="team-picker">
-          <!-- Rouge -->
           <div>
-            <div class="role-btn" id="pick-red-agent"   data-team="red"  data-role="agent">🔴 Rouge — Agent</div>
+            <div class="role-btn" data-team="red"  data-role="agent">🔴 Rouge — Agent</div>
             <div style="height:6px"></div>
-            <div class="role-btn" id="pick-red-spy"     data-team="red"  data-role="spymaster">🔴 Rouge — Maître</div>
+            <div class="role-btn" data-team="red"  data-role="spymaster">🔴 Rouge — Maître</div>
           </div>
-          <!-- Bleu -->
           <div>
-            <div class="role-btn" id="pick-blue-agent"  data-team="blue" data-role="agent">🔵 Bleu — Agent</div>
+            <div class="role-btn" data-team="blue" data-role="agent">🔵 Bleu — Agent</div>
             <div style="height:6px"></div>
-            <div class="role-btn" id="pick-blue-spy"    data-team="blue" data-role="spymaster">🔵 Bleu — Maître</div>
+            <div class="role-btn" data-team="blue" data-role="spymaster">🔵 Bleu — Maître</div>
           </div>
         </div>
       </div>
     </div>
-
     <div class="card">
       <div class="teams-grid">
         <div class="team-column red">
@@ -122,59 +143,61 @@
         <div class="unassigned-list" id="lobby-unassigned"></div>
       </div>
     </div>
-
-    <button class="btn btn-success btn-lg btn-full" id="btn-start" disabled>Démarrer la partie</button>
-    <div id="lobby-guest-msg" style="text-align:center;color:var(--text-muted);font-size:0.88rem;display:none">
-      En attente que l'hôte démarre…
-    </div>
+    <button class="btn btn-success btn-lg btn-full" id="btn-start" disabled>Démarrer</button>
+    <div id="lobby-guest-msg" style="text-align:center;color:var(--text-muted);font-size:0.88rem;display:none">En attente que l'hôte démarre…</div>
   </div>
 </div>
 
-<!-- ══ GAME ═══════════════════════════════════════════════════════════════════ -->
-<div class="screen" id="screen-game">
+<!-- ══ LOBBY DUO ══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-duo-lobby">
+  <div class="header">
+    <button class="btn-back" id="btn-leave-duo-lobby">←</button>
+    <span style="font-weight:800">Duo — En attente</span>
+    <div style="width:42px"></div>
+  </div>
+  <div class="setup-content">
+    <div class="room-code-display">
+      <div class="room-code-label">Code de la partie</div>
+      <div class="room-code-value" id="duo-lobby-code">------</div>
+      <div class="room-code-hint">Donne ce code à ton partenaire</div>
+    </div>
+    <div class="card" id="duo-lobby-players-card">
+      <div style="font-weight:800;margin-bottom:12px;font-size:0.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted)">Joueurs</div>
+      <div id="duo-lobby-players" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-sm);padding:14px;font-size:0.82rem;color:var(--text-muted);line-height:1.5">
+      ℹ️ Chacun verra sa propre carte-clé. Le Joueur 1 commence comme espion, le Joueur 2 comme agent — les rôles alternent à chaque tour.
+    </div>
+    <button class="btn btn-duo btn-lg btn-full" id="btn-start-duo" disabled>Démarrer la mission</button>
+    <div id="duo-lobby-guest-msg" style="text-align:center;color:var(--text-muted);font-size:0.88rem;display:none">En attente que l'hôte démarre…</div>
+  </div>
+</div>
 
-  <!-- Header scores + tour -->
+<!-- ══ GAME CLASSIQUE ══════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-game">
   <div class="game-header">
     <div class="team-score red" id="score-red">
       <div class="score-label">Rouge</div>
       <div class="score-num" id="score-red-num">9</div>
     </div>
-
     <div style="flex:1;text-align:center">
       <div class="turn-indicator" id="turn-indicator">ROUGE joue</div>
       <div style="margin-top:4px"><span class="role-tag" id="my-role-tag">Agent</span></div>
     </div>
-
     <div class="team-score blue" id="score-blue">
       <div class="score-label">Bleu</div>
       <div class="score-num" id="score-blue-num">8</div>
     </div>
   </div>
-
-  <!-- Indice -->
-  <div class="hint-banner waiting" id="hint-banner">
-    En attente de l'indice…
-  </div>
-
-  <!-- Grille -->
-  <div class="grid-container">
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <!-- Zone maître-espion -->
+  <div class="hint-banner waiting" id="hint-banner">En attente de l'indice…</div>
+  <div class="grid-container"><div class="grid" id="grid"></div></div>
   <div id="spymaster-zone" style="display:none">
     <div class="hint-input-section">
       <input class="hint-text-input" id="hint-word-input" type="text" placeholder="Votre indice…" maxlength="30" autocomplete="off" autocorrect="off">
       <select class="hint-count-input" id="hint-count-input">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-        <option value="9">9</option>
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
         <option value="0">∞</option>
       </select>
     </div>
@@ -182,17 +205,65 @@
       <button class="btn btn-primary btn-full" id="btn-give-hint">Donner l'indice</button>
     </div>
   </div>
-
-  <!-- Zone agent -->
   <div id="agent-zone" style="display:none">
     <div class="agent-actions">
       <button class="btn btn-ghost btn-full" id="btn-end-turn">Passer mon tour</button>
     </div>
   </div>
+</div>
+
+<!-- ══ GAME DUO ═══════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-duo-game">
+
+  <!-- Header -->
+  <div class="duo-header">
+    <div class="duo-contacts">
+      <span class="duo-contacts-num" id="duo-contacts-left">15</span>
+      <span class="duo-contacts-label">contacts</span>
+    </div>
+    <div style="text-align:center;flex:1">
+      <div class="duo-role-tag" id="duo-role-tag">👁 Espion</div>
+      <div class="duo-partner" id="duo-partner-label"></div>
+    </div>
+    <div class="duo-tokens">
+      <div class="duo-tokens-label">tours</div>
+      <div class="duo-tokens-num" id="duo-tokens-left">9</div>
+      <div class="duo-tokens-row" id="duo-tokens-row"></div>
+    </div>
+  </div>
+
+  <!-- Indice -->
+  <div class="hint-banner waiting" id="duo-hint-banner">En attente de l'indice…</div>
+
+  <!-- Grille -->
+  <div class="grid-container"><div class="grid" id="duo-grid"></div></div>
+
+  <!-- Zone espion -->
+  <div id="duo-spy-zone" style="display:none">
+    <div class="hint-input-section">
+      <input class="hint-text-input" id="duo-hint-word" type="text" placeholder="Ton indice…" maxlength="30" autocomplete="off" autocorrect="off">
+      <select class="hint-count-input" id="duo-hint-count">
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="0">∞</option>
+      </select>
+    </div>
+    <div style="padding:8px 16px 0">
+      <button class="btn btn-duo btn-full" id="btn-duo-give-hint">Donner l'indice</button>
+    </div>
+  </div>
+
+  <!-- Zone agent -->
+  <div id="duo-agent-zone" style="display:none">
+    <div class="agent-actions">
+      <button class="btn btn-ghost btn-full" id="btn-duo-end-turn">Fin des devinettes</button>
+    </div>
+  </div>
 
 </div>
 
-<!-- ══ END ════════════════════════════════════════════════════════════════════ -->
+<!-- ══ END CLASSIQUE ══════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-end">
   <div class="end-hero">
     <div class="winner-emoji" id="end-emoji">🏆</div>
@@ -207,35 +278,41 @@
   </div>
 </div>
 
+<!-- ══ END DUO ════════════════════════════════════════════════════════════════ -->
+<div class="screen" id="screen-duo-end">
+  <div class="end-hero">
+    <div class="winner-emoji" id="duo-end-emoji">🏆</div>
+    <div class="winner-label" id="duo-end-label">Mission accomplie !</div>
+    <div class="winner-name" id="duo-end-title" style="font-size:1.8rem"></div>
+    <div class="end-cause" id="duo-end-cause"></div>
+  </div>
+  <div class="end-actions">
+    <button class="btn btn-duo btn-lg btn-full" id="btn-duo-rematch">Rejouer</button>
+    <button class="btn btn-outline btn-full" id="btn-duo-home">Retour à l'accueil</button>
+  </div>
+</div>
+
 <!-- ══ RULES ══════════════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-rules">
   <div class="header">
     <button class="btn-back" data-back="screen-home">←</button>
-    <span style="font-weight:800">Comment jouer</span>
+    <span style="font-weight:800">Règles</span>
     <div style="width:42px"></div>
   </div>
   <div class="setup-content">
-    <div class="card" style="display:flex;flex-direction:column;gap:16px">
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="min-width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:900">1</div>
-        <div><div style="font-weight:800;margin-bottom:3px">Deux équipes s'affrontent</div><div style="font-size:0.85rem;color:var(--text-muted)">Équipe Rouge (9 mots) vs Équipe Bleue (8 mots). Rouge commence.</div></div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="min-width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:900">2</div>
-        <div><div style="font-weight:800;margin-bottom:3px">Le maître-espion donne un indice</div><div style="font-size:0.85rem;color:var(--text-muted)">Un seul mot + un nombre (combien de mots de la grille correspondent).</div></div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="min-width:32px;height:32px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-weight:900">3</div>
-        <div><div style="font-weight:800;margin-bottom:3px">Les agents devinent</div><div style="font-size:0.85rem;color:var(--text-muted)">Ils tapent les mots de la grille. Bonne équipe = continue. Neutre ou mauvaise équipe = fin du tour.</div></div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="min-width:32px;height:32px;border-radius:50%;background:var(--danger);display:flex;align-items:center;justify-content:center;font-weight:900">!</div>
-        <div><div style="font-weight:800;margin-bottom:3px">L'assassin = défaite immédiate</div><div style="font-size:0.85rem;color:var(--text-muted)">Si un agent touche le mot assassin (💀), son équipe perd instantanément.</div></div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="min-width:32px;height:32px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-weight:900">✓</div>
-        <div><div style="font-weight:800;margin-bottom:3px">Victoire</div><div style="font-size:0.85rem;color:var(--text-muted)">La première équipe à révéler tous ses mots gagne la partie.</div></div>
-      </div>
+    <div class="card" style="font-weight:800;font-size:1rem;color:var(--red)">Mode Classique</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;gap:12px"><div class="rules-num">1</div><div><b>Deux équipes s'affrontent</b><div style="font-size:0.83rem;color:var(--text-muted)">Rouge (9 mots) vs Bleu (8 mots). Rouge commence.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num">2</div><div><b>Le maître-espion donne un indice</b><div style="font-size:0.83rem;color:var(--text-muted)">Un mot + un nombre. Seul le maître-espion voit la carte-clé.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num">3</div><div><b>Les agents devinent</b><div style="font-size:0.83rem;color:var(--text-muted)">Bonne équipe = continue. Neutre ou mauvaise équipe = fin du tour.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num" style="background:var(--danger)">!</div><div><b>L'assassin (💀) = défaite immédiate</b></div></div>
+    </div>
+    <div class="card" style="font-weight:800;font-size:1rem;color:#10B981">Mode Duo</div>
+    <div class="card" style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">1</div><div><b>Coopératif</b><div style="font-size:0.83rem;color:var(--text-muted)">Vous jouez ensemble contre le jeu. 15 contacts à trouver, 9 tours max.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">2</div><div><b>Cartes-clés asymétriques</b><div style="font-size:0.83rem;color:var(--text-muted)">Chacun voit 9 contacts sur sa carte-clé. 3 sont communs, 6 sont propres à chacun.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num" style="background:#10B981">3</div><div><b>Rôles alternés</b><div style="font-size:0.83rem;color:var(--text-muted)">À chaque tour l'un est espion (donne l'indice), l'autre est agent (devine). Les rôles tournent.</div></div></div>
+      <div style="display:flex;gap:12px"><div class="rules-num" style="background:var(--danger)">!</div><div><b>Assassins & temps</b><div style="font-size:0.83rem;color:var(--text-muted)">Toucher un assassin (💀) = défaite immédiate. Dépasser 9 tours = défaite.</div></div></div>
     </div>
   </div>
 </div>
