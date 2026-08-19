@@ -20,6 +20,12 @@ function randomCode() {
   return code;
 }
 
+function generatePlayerId() {
+  return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+}
+
+const RECONNECT_GRACE = 300_000; // 5 minutes avant suppression définitive
+
 // ─── Classique : génération grille ───────────────────────────────────────────
 function generateClassicGrid() {
   const shuffled = [...WORDS].sort(() => Math.random() - 0.5).slice(0, 25);
@@ -132,29 +138,72 @@ function broadcastDuo(room) {
 // ─── Socket.io ────────────────────────────────────────────────────────────────
 io.on('connection', (socket) => {
 
+  // ── Rejoindre après rechargement / appel téléphonique ───────────────────────
+  socket.on('rejoin', ({ playerId, roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return socket.emit('rejoin-failed');
+    const player = room.players.find(p => p.playerId === playerId);
+    if (!player) return socket.emit('rejoin-failed');
+
+    // Annuler le timer de suppression
+    if (player._disconnectTimer) { clearTimeout(player._disconnectTimer); player._disconnectTimer = null; }
+
+    const oldId = player.id;
+    player.id = socket.id;
+    if (room.host === oldId) room.host = socket.id;
+    socket.join(roomCode);
+
+    const isHost = room.host === socket.id;
+
+    // Renvoyer l'état courant selon le mode et l'écran
+    if (room.mode === 'classic') {
+      if (room.state === 'lobby') {
+        if (isHost) socket.emit('room-created', { code: roomCode, player, playerId: player.playerId });
+        else socket.emit('room-joined', { code: roomCode, player, playerId: player.playerId });
+        io.to(roomCode).emit('room-updated', { players: room.players });
+      } else {
+        socket.emit('game-started', classicSnapshot(room, socket.id));
+        if (room.state === 'playing' && room.currentHint) {
+          socket.emit('hint-given', { word: room.currentHint.word, count: room.currentHint.count, guessesLeft: room.guessesLeft, currentTeam: room.currentTeam });
+        }
+      }
+    } else {
+      if (room.state === 'lobby') {
+        const myIndex = room.players.findIndex(p => p.id === socket.id);
+        if (isHost) socket.emit('duo-room-created', { code: roomCode, playerId: player.playerId });
+        else socket.emit('duo-room-joined', { code: roomCode, myIndex, playerId: player.playerId });
+        io.to(roomCode).emit('duo-lobby-updated', { players: room.players });
+      } else {
+        socket.emit('duo-started', duoSnapshot(room, socket.id));
+      }
+    }
+  });
+
   // ── Classique : créer ────────────────────────────────────────────────────────
   socket.on('create-room', ({ playerName }) => {
     let code;
     do { code = randomCode(); } while (rooms.has(code));
+    const playerId = generatePlayerId();
     const room = {
       code, host: socket.id, mode: 'classic',
-      players: [{ id: socket.id, name: playerName, team: null, role: 'agent' }],
+      players: [{ id: socket.id, playerId, name: playerName, team: null, role: 'agent' }],
       state: 'lobby', grid: [],
       currentTeam: 'red', currentHint: null, guessesLeft: 0,
       redLeft: 9, blueLeft: 8, winner: null, winCause: null,
     };
     rooms.set(code, room);
     socket.join(code);
-    socket.emit('room-created', { code, player: room.players[0] });
+    socket.emit('room-created', { code, player: room.players[0], playerId });
   });
 
   // ── Duo : créer ───────────────────────────────────────────────────────────────
   socket.on('create-duo-room', ({ playerName }) => {
     let code;
     do { code = randomCode(); } while (rooms.has(code));
+    const playerId = generatePlayerId();
     const room = {
       code, host: socket.id, mode: 'duo',
-      players: [{ id: socket.id, name: playerName }],
+      players: [{ id: socket.id, playerId, name: playerName }],
       state: 'lobby', grid: [],
       timeTokens: 9, contactsLeft: 15,
       currentSpyIndex: 0, currentHint: null, guessesLeft: 0,
@@ -162,7 +211,7 @@ io.on('connection', (socket) => {
     };
     rooms.set(code, room);
     socket.join(code);
-    socket.emit('duo-room-created', { code });
+    socket.emit('duo-room-created', { code, playerId });
   });
 
   // ── Rejoindre (classique et duo) ──────────────────────────────────────────────
@@ -173,19 +222,21 @@ io.on('connection', (socket) => {
 
     if (room.mode === 'duo') {
       if (room.players.length >= 2) return socket.emit('room-error', { message: 'Partie Duo déjà complète (2 joueurs max).' });
-      room.players.push({ id: socket.id, name: playerName });
+      const playerId = generatePlayerId();
+      room.players.push({ id: socket.id, playerId, name: playerName });
       socket.join(code.toUpperCase());
-      socket.emit('duo-room-joined', { code: code.toUpperCase(), myIndex: 1 });
+      socket.emit('duo-room-joined', { code: code.toUpperCase(), myIndex: 1, playerId });
       io.to(code.toUpperCase()).emit('duo-lobby-updated', { players: room.players });
       return;
     }
 
     // Classique
     if (room.players.length >= 12) return socket.emit('room-error', { message: 'Partie pleine (12 joueurs max).' });
-    const player = { id: socket.id, name: playerName, team: null, role: 'agent' };
+    const playerId = generatePlayerId();
+    const player = { id: socket.id, playerId, name: playerName, team: null, role: 'agent' };
     room.players.push(player);
     socket.join(code.toUpperCase());
-    socket.emit('room-joined', { code: code.toUpperCase(), player });
+    socket.emit('room-joined', { code: code.toUpperCase(), player, playerId });
     io.to(code.toUpperCase()).emit('room-updated', { players: room.players });
   });
 
@@ -405,19 +456,23 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ── Déconnexion ───────────────────────────────────────────────────────────────
+  // ── Déconnexion (délai de grâce pour rechargement/appel) ─────────────────────
   socket.on('disconnect', () => {
     for (const [code, room] of rooms) {
-      const idx = room.players.findIndex(p => p.id === socket.id);
-      if (idx === -1) continue;
-      const name = room.players[idx].name;
-      const wasHost = room.host === socket.id;
-      room.players.splice(idx, 1);
-      if (room.players.length === 0) { rooms.delete(code); }
-      else {
-        if (wasHost) room.host = room.players[0].id;
-        io.to(code).emit('player-disconnected', { name, players: room.players, host: room.host });
-      }
+      const player = room.players.find(p => p.id === socket.id);
+      if (!player) continue;
+      player._disconnectTimer = setTimeout(() => {
+        const idx = room.players.findIndex(p => p.playerId === player.playerId);
+        if (idx === -1) return;
+        const name = player.name;
+        const wasHost = room.host === player.id;
+        room.players.splice(idx, 1);
+        if (room.players.length === 0) { rooms.delete(code); }
+        else {
+          if (wasHost) room.host = room.players[0].id;
+          io.to(code).emit('player-disconnected', { name, players: room.players, host: room.host });
+        }
+      }, RECONNECT_GRACE);
       break;
     }
   });

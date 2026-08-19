@@ -8,8 +8,23 @@ let gameMode = 'classic'; // 'classic' | 'duo'
 let myDuoIndex = -1;      // 0 ou 1 en mode duo
 
 /* ── Socket ─────────────────────────────────────────────────────────────────── */
-const socket = io({ reconnectionAttempts: 10 });
+const socket = io({ reconnectionAttempts: 20 });
 socket.on('connect_error', () => toast('Connexion perdue…', 'error'));
+
+socket.on('connect', () => {
+  const playerId = sessionStorage.getItem('cn_playerId');
+  const roomCode = sessionStorage.getItem('cn_roomCode');
+  if (playerId && roomCode) {
+    myRoom = roomCode; // restaurer avant d'émettre
+    socket.emit('rejoin', { playerId, roomCode });
+  }
+});
+
+socket.on('rejoin-failed', () => {
+  sessionStorage.removeItem('cn_playerId');
+  sessionStorage.removeItem('cn_roomCode');
+  resetAndHome();
+});
 
 /* ── Screens ────────────────────────────────────────────────────────────────── */
 function showScreen(id) {
@@ -40,8 +55,11 @@ document.getElementById('btn-create-room').addEventListener('click', () => {
   socket.emit('create-room', { playerName: name });
 });
 
-socket.on('room-created', ({ code, player }) => {
-  myRoom = code; isHost = true; myTeam = null; myRole = 'agent';
+socket.on('room-created', ({ code, player, playerId }) => {
+  myRoom = code; isHost = true; myTeam = player.team; myRole = player.role || 'agent';
+  if (player.name) myName = player.name;
+  sessionStorage.setItem('cn_playerId', playerId);
+  sessionStorage.setItem('cn_roomCode', code);
   document.getElementById('lobby-code').textContent = code;
   updateClassicLobby([player], true);
   showLobbyButtons(true);
@@ -58,8 +76,10 @@ document.getElementById('btn-join-room').addEventListener('click', () => {
   socket.emit('join-room', { code, playerName: name });
 });
 
-socket.on('room-joined', ({ code, player }) => {
-  myRoom = code; isHost = false; myTeam = null; myRole = 'agent'; gameMode = 'classic';
+socket.on('room-joined', ({ code, player, playerId }) => {
+  myRoom = code; isHost = false; myTeam = player.team; myRole = player.role || 'agent'; gameMode = 'classic';
+  if (player.name) myName = player.name;
+  if (playerId) { sessionStorage.setItem('cn_playerId', playerId); sessionStorage.setItem('cn_roomCode', code); }
   document.getElementById('lobby-code').textContent = code;
   updateClassicLobby([player], false);
   showLobbyButtons(false);
@@ -271,8 +291,10 @@ document.getElementById('btn-create-duo-room').addEventListener('click', () => {
   socket.emit('create-duo-room', { playerName: name });
 });
 
-socket.on('duo-room-created', ({ code }) => {
+socket.on('duo-room-created', ({ code, playerId }) => {
   myRoom = code; isHost = true; myDuoIndex = 0;
+  sessionStorage.setItem('cn_playerId', playerId);
+  sessionStorage.setItem('cn_roomCode', code);
   document.getElementById('duo-lobby-code').textContent = code;
   renderDuoLobby([{ name: myName }]);
   document.getElementById('btn-start-duo').style.display = '';
@@ -282,8 +304,9 @@ socket.on('duo-room-created', ({ code }) => {
   showScreen('screen-duo-lobby');
 });
 
-socket.on('duo-room-joined', ({ code, myIndex }) => {
+socket.on('duo-room-joined', ({ code, myIndex, playerId }) => {
   myRoom = code; isHost = false; myDuoIndex = myIndex; gameMode = 'duo';
+  if (playerId) { sessionStorage.setItem('cn_playerId', playerId); sessionStorage.setItem('cn_roomCode', code); }
   document.getElementById('duo-lobby-code').textContent = code;
   document.getElementById('btn-start-duo').style.display = 'none';
   document.getElementById('duo-lobby-guest-msg').style.display = '';
@@ -460,6 +483,8 @@ socket.on('player-disconnected', ({ name, players, host }) => {
 });
 
 function resetAndHome() {
+  sessionStorage.removeItem('cn_playerId');
+  sessionStorage.removeItem('cn_roomCode');
   socket.disconnect(); socket.connect();
   myRoom = ''; myName = ''; isHost = false; myTeam = null; myRole = 'agent';
   gameMode = 'classic'; myDuoIndex = -1;
