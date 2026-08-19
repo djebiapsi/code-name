@@ -1,0 +1,10 @@
+services:
+  app:
+    build: .
+    container_name: codename-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    ports:
+      - "127.0.0.1:3001:3000"
