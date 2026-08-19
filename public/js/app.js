@@ -213,8 +213,10 @@ function renderGame(state) {
 
   // Zones
   const isMySpy   = myRole === 'spymaster' && myTeam === state.currentTeam;
-  const isMyAgent = myRole === 'agent'      && myTeam === state.currentTeam;
   const hintGiven = !!state.currentHint;
+  const myTeammates = state.players.filter(q => q.team === myTeam);
+  const isSpyAlone  = myRole === 'spymaster' && !myTeammates.some(q => q.role === 'agent');
+  const isMyAgent   = (myRole === 'agent' || isSpyAlone) && myTeam === state.currentTeam;
 
   document.getElementById('spymaster-zone').style.display = (isMySpy && !hintGiven) ? '' : 'none';
   document.getElementById('agent-zone').style.display     = (isMyAgent && hintGiven) ? '' : 'none';
@@ -224,7 +226,9 @@ function renderGrid(grid, currentTeam, hint) {
   const el = document.getElementById('grid');
   el.innerHTML = '';
   const isMySpy   = myRole === 'spymaster';
-  const isMyTurn  = myTeam === currentTeam && myRole === 'agent' && !!hint;
+  const myTeamPlayers = gameState ? gameState.players.filter(q => q.team === myTeam) : [];
+  const spyAlone  = isMySpy && !myTeamPlayers.some(q => q.role === 'agent');
+  const isMyTurn  = myTeam === currentTeam && (myRole === 'agent' || spyAlone) && !!hint;
 
   grid.forEach((card, i) => {
     const div = document.createElement('div');
@@ -257,7 +261,9 @@ function renderHintBanner(team, word, count, guessesLeft) {
 }
 
 function renderAgentZone(currentTeam) {
-  const isMyAgent = myRole === 'agent' && myTeam === currentTeam;
+  const myTeamPlayers = gameState ? gameState.players.filter(q => q.team === myTeam) : [];
+  const spyAlone  = myRole === 'spymaster' && !myTeamPlayers.some(q => q.role === 'agent');
+  const isMyAgent = (myRole === 'agent' || spyAlone) && myTeam === currentTeam;
   document.getElementById('agent-zone').style.display = isMyAgent ? '' : 'none';
 }
 

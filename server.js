@@ -174,7 +174,10 @@ io.on('connection', (socket) => {
     if (room.guessesLeft <= 0) return;
 
     const p = room.players.find(p => p.id === socket.id);
-    if (!p || p.role !== 'agent' || p.team !== room.currentTeam) return;
+    if (!p || p.team !== room.currentTeam) return;
+    // Le maître-espion ne peut deviner que s'il n'y a pas d'agents dans son équipe
+    const teammates = room.players.filter(q => q.team === room.currentTeam);
+    if (p.role === 'spymaster' && teammates.some(q => q.role === 'agent')) return;
 
     const card = room.grid[index];
     if (!card || card.revealed) return;
